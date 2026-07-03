@@ -400,7 +400,11 @@ int main(void)
 
         /* ① 按键扫描与处理 (每轮主循环执行, 不依赖 200ms 周期) */
         key_val = Key_Scan();
-        ProcessKey(key_val);
+        if (key_val != KEY_NONE)
+        {
+            ProcessKey(key_val);
+            Display_Update();  /* 按键后立即刷新, 不等 200ms */
+        }
 
         /* 每 200ms 执行一次控制周期 */
         if (now - last_tick >= CONTROL_CYCLE_MS)

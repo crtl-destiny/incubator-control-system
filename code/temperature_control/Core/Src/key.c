@@ -18,8 +18,9 @@
  *   └───┴───┴───┘
  *   * = 0x0A (设置/退格), # = 0x0B (确认/启停)
  *
- * 扫描方式: 无阻塞, 每次调用只扫一遍, 靠重复调用自然消抖。
- * 同键防重: 连续两次读到相同键值时自动屏蔽, 松开后才允许再次触发。
+ * 扫描方式: 无阻塞, GPIO 设行后加 ~2µs 等待信号稳定。
+ * 去抖: 每检测到一个键后屏蔽 50ms (基于 HAL_GetTick, 不阻塞)。
+ * 同键防重: 50ms 窗口内只返回一次相同键值。
  */
 
 #include "key.h"
@@ -39,12 +40,19 @@ void Key_Init(void) { }
 uint8_t Key_Scan(void)
 {
     static uint8_t last_key = KEY_NONE;
+    static uint32_t last_tick = 0;
     uint8_t found = KEY_NONE;
+
+    /* 50ms 去抖窗口: 刚触发过按键则暂不扫描 */
+    if (HAL_GetTick() - last_tick < 50) return KEY_NONE;
 
     for (uint8_t r = 0; r < KEY_ROWS; r++)
     {
         HAL_GPIO_WritePin(GPIOB, row_pins[0] | row_pins[1] | row_pins[2] | row_pins[3], GPIO_PIN_RESET);
         HAL_GPIO_WritePin(GPIOB, row_pins[r], GPIO_PIN_SET);
+
+        /* 等待行信号稳定 (~2µs) */
+        for (volatile uint32_t d = 0; d < 200; d++);
 
         for (uint8_t c = 0; c < KEY_COLS; c++)
         {
@@ -57,9 +65,15 @@ uint8_t Key_Scan(void)
         if (found != KEY_NONE) break;
     }
 
-    if (found == last_key) return KEY_NONE;
-    last_key = found;
-    return found;
+    if (found != KEY_NONE && found != last_key)
+    {
+        last_key = found;
+        last_tick = HAL_GetTick();
+        return found;
+    }
+
+    if (found == KEY_NONE) last_key = KEY_NONE;
+    return KEY_NONE;
 }
 
 uint8_t Key_GetValue(void)
