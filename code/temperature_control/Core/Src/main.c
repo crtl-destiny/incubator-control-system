@@ -398,14 +398,14 @@ int main(void)
   {
         uint32_t now = HAL_GetTick();
 
+        /* ① 按键扫描与处理 (每轮主循环执行, 不依赖 200ms 周期) */
+        key_val = Key_Scan();
+        ProcessKey(key_val);
+
         /* 每 200ms 执行一次控制周期 */
         if (now - last_tick >= CONTROL_CYCLE_MS)
         {
             last_tick = now;
-
-            /* ① 按键扫描与处理 */
-            key_val = Key_Scan();
-            ProcessKey(key_val);
 
             /* ② 温度采集 (非阻塞: 上一个转换已就绪则读取, 再启动新转换) */
             if (ds18b20_conv_started)
