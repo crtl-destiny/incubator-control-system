@@ -150,29 +150,72 @@ static void Display_Update(void)
     OLED_Display();
 }
 
-/* ── 温度超限报警检查 ── */
+/* ── 温度超限报警检查 (三段式算法) ──
+ *
+ * 阶段一: 启动免扰 (前10min) → 不报警, 给PID充分时间
+ * 阶段二: |偏差|≤2℃ → 正常, 清除报警
+ * 阶段三: |偏差|>2℃ 且 持续60s无改善 → 设备可能故障, 报警
+ *
+ * 传函 G(s)=1.0·e^{-62s}/(225s+1) → τ=62s, T₁=225s
+ * 免扰10min = 2.5·T₁, 卡住60s ≈ τ
+ */
+#define STARTUP_FREE_CYCLES  3000   /* 10min / 0.2s = 3000 控制周期 */
+#define STUCK_THRESHOLD      300    /* 60s / 0.2s = 300 周期 */
+
 static void Alarm_Check(void)
 {
+    static uint32_t startup_cnt = 0;
+    static float    min_error   = 0.0f;
+    static uint32_t stuck_cnt   = 0;
+
     float diff = current_temp - target_temp;
-    if (diff > ALARM_TEMP_HIGH || diff < -ALARM_TEMP_LOW)
+    float abs_err = (diff > 0) ? diff : -diff;
+
+    /* 仅 RUNNING / ALARM 态参与报警 */
+    if (sys_state != SYSTEM_STATE_RUNNING && sys_state != SYSTEM_STATE_ALARM)
+        return;
+
+    /* ── 阶段一: 启动免扰 ── */
+    if (startup_cnt < STARTUP_FREE_CYCLES)
     {
-        sys_state = SYSTEM_STATE_ALARM;
-        if (!alarm_active)
-        {
-            alarm_active = 1;
-            HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_RESET);  /* 蜂鸣器响 */
-        }
+        startup_cnt++;
+        return;
     }
-    else
+
+    /* ── 阶段二: 偏差在正常范围 ── */
+    if (abs_err <= ALARM_TEMP_HIGH)
     {
+        stuck_cnt = 0;
+        min_error = 0.0f;
+        if (sys_state == SYSTEM_STATE_ALARM)
+            sys_state = SYSTEM_STATE_RUNNING;
         if (alarm_active)
         {
             alarm_active = 0;
-            HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_SET);    /* 蜂鸣器关 */
+            HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_SET);  /* 蜂鸣器关 */
         }
-        if (sys_state == SYSTEM_STATE_ALARM)
+        return;
+    }
+
+    /* ── 阶段三: 偏差 > 2℃ ── */
+    /* 检查偏差是否在改善 (朝设定值靠近) */
+    if (min_error == 0.0f || abs_err < min_error)
+    {
+        min_error = abs_err;
+        stuck_cnt = 0;                          /* 在改善, 不清零计时 */
+    }
+    else
+    {
+        stuck_cnt++;                            /* 无改善, 累计卡住时间 */
+    }
+
+    if (stuck_cnt >= STUCK_THRESHOLD)
+    {
+        sys_state = SYSTEM_STATE_ALARM;          /* 真正报警 */
+        if (!alarm_active)
         {
-            sys_state = SYSTEM_STATE_RUNNING;  /* 温度恢复后自动回到运行态 */
+            alarm_active = 1;
+            HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_RESET);
         }
     }
 }
@@ -426,8 +469,8 @@ int main(void)
             /* ③ 报警检测 (始终执行, 不依赖运行状态) */
             Alarm_Check();
 
-            /* ④ 运行状态下执行 PID 控制 */
-            if (sys_state == SYSTEM_STATE_RUNNING)
+            /* ④ 运行/报警状态下执行 PID 控制 (报警只响蜂鸣器, 不停控温) */
+            if (sys_state == SYSTEM_STATE_RUNNING || sys_state == SYSTEM_STATE_ALARM)
             {
                 pid_out = PID_Calculate(&hpid, target_temp, current_temp);
                 Control_ProcessOutput(&hctrl, pid_out);
