@@ -37,7 +37,7 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 /* ========== 硬件引脚映射 ========== */
-#define BUZZER_PIN      GPIO_PIN_8    /* 蜂鸣器 PA8, 经 NPN 三极管驱动 5V 有源蜂鸣器 */
+#define BUZZER_PIN      GPIO_PIN_8    /* 蜂鸣器 PA8, 低电平触发 */
 #define BUZZER_PORT     GPIOA
 
 /* ========== 温度控制参数 ========== */

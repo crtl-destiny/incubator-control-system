@@ -177,7 +177,7 @@ static void Alarm_ResetCounters(void)
 static void Alarm_ClearBuzzer(void)
 {
     alarm_active = 0;
-    HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_SET);
 }
 
 static void Alarm_Check(void)
@@ -226,7 +226,7 @@ static void Alarm_Check(void)
     {
         sys_state = SYSTEM_STATE_ALARM;
         alarm_active = 1;
-        HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_RESET);
     }
 }
 
@@ -279,7 +279,7 @@ static void ProcessKey(uint8_t key)
             setting_idx = 0;
             Alarm_ResetCounters();
             alarm_active = 0;
-            HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_SET);
             PID_Reset(&hpid);
             run_time_sec = 0;
             run_time_ms = 0;
@@ -299,7 +299,7 @@ static void ProcessKey(uint8_t key)
                 sys_state = SYSTEM_STATE_RUNNING;
                 Alarm_ResetCounters();
                 alarm_active = 0;
-                HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_RESET);
+                HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_SET);
                 run_time_sec = 0;
                 run_time_ms = 0;
             }
@@ -417,8 +417,8 @@ int main(void)
     rtc_init.Seconds = 0;
     HAL_RTC_SetTime(&hrtc, &rtc_init, RTC_FORMAT_BIN);
 
-    /* 关闭蜂鸣器 (PA8 低电平 → NPN 截止 → 5V 蜂鸣器断电) */
-    HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_RESET);
+    /* 关闭蜂鸣器 (高电平=关) */
+    HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_SET);
 
     /* 初始化 OLED 并显示启动画面 */
     OLED_Init();
@@ -489,7 +489,7 @@ int main(void)
             }
 
             /* ③ 安全守卫: 控制周期开始前确保蜂鸣器初始关闭 */
-            HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_SET);
 
             /* ④ 报警检测 (始终执行, 不依赖运行状态) */
             Alarm_Check();

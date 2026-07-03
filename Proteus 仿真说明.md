@@ -23,7 +23,7 @@
      BTS7960_IN1 ─ PA6 ─┤ TIM3_CH1 (PWM)                      │
      BTS7960_IN2 ─ PA7 ─┤ TIM3_CH2 (PWM)                      │
                          │                                     │
-      BUZZER ──── PA8 ───┤ GPIO (经 NPN 三极管驱动 5V 有源蜂鸣器)       │
+      BUZZER ──── PA8 ───┤ GPIO (低电平有效)                   │
                          │                                     │
      USART1_TX ─ PA9 ───┤ USART1                              │
      USART1_RX ─ PA10 ──┤ USART1                              │
