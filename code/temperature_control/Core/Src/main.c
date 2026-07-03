@@ -76,6 +76,11 @@ static uint32_t last_uart_tick = 0;     /* 上次串口上报时间戳 */
 static uint8_t alarm_active = 0;        /* 报警标志 (防重复触发) */
 static uint32_t run_time_ms = 0;        /* 运行时间毫秒累加器 */
 static uint8_t ds18b20_conv_started = 0; /* DS18B20 非阻塞转换标志 */
+static uint8_t ds18b20_cycle_cnt = 0;   /* DS18B20 读数跳过计数 (每4周期=800ms读一次) */
+/* 三段式报警内部计数器 (文件级以便 ProcessKey 复位) */
+static uint32_t alarm_startup_cnt = 0;
+static float    alarm_min_error   = 0.0f;
+static uint32_t alarm_stuck_cnt   = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -162,56 +167,67 @@ static void Display_Update(void)
 #define STARTUP_FREE_CYCLES  3000   /* 10min / 0.2s = 3000 控制周期 */
 #define STUCK_THRESHOLD      300    /* 60s / 0.2s = 300 周期 */
 
+static void Alarm_ResetCounters(void)
+{
+    alarm_startup_cnt = 0;
+    alarm_min_error   = 0.0f;
+    alarm_stuck_cnt   = 0;
+}
+
+static void Alarm_ClearBuzzer(void)
+{
+    if (alarm_active)
+    {
+        alarm_active = 0;
+        HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_SET);
+    }
+}
+
 static void Alarm_Check(void)
 {
-    static uint32_t startup_cnt = 0;
-    static float    min_error   = 0.0f;
-    static uint32_t stuck_cnt   = 0;
-
     float diff = current_temp - target_temp;
-    float abs_err = (diff > 0) ? diff : -diff;
+    float abs_err = (diff > 0) ? diff : (-diff);
 
-    /* 仅 RUNNING / ALARM 态参与报警 */
+    /* ── 非运行态: 确保蜂鸣器关闭 (兼容旧版行为) ── */
     if (sys_state != SYSTEM_STATE_RUNNING && sys_state != SYSTEM_STATE_ALARM)
+    {
+        Alarm_ClearBuzzer();
         return;
+    }
 
     /* ── 阶段一: 启动免扰 ── */
-    if (startup_cnt < STARTUP_FREE_CYCLES)
+    if (alarm_startup_cnt < STARTUP_FREE_CYCLES)
     {
-        startup_cnt++;
+        alarm_startup_cnt++;
+        Alarm_ClearBuzzer();
         return;
     }
 
     /* ── 阶段二: 偏差在正常范围 ── */
     if (abs_err <= ALARM_TEMP_HIGH)
     {
-        stuck_cnt = 0;
-        min_error = 0.0f;
+        alarm_stuck_cnt = 0;
+        alarm_min_error = 0.0f;
         if (sys_state == SYSTEM_STATE_ALARM)
             sys_state = SYSTEM_STATE_RUNNING;
-        if (alarm_active)
-        {
-            alarm_active = 0;
-            HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_SET);  /* 蜂鸣器关 */
-        }
+        Alarm_ClearBuzzer();
         return;
     }
 
     /* ── 阶段三: 偏差 > 2℃ ── */
-    /* 检查偏差是否在改善 (朝设定值靠近) */
-    if (min_error == 0.0f || abs_err < min_error)
+    if (alarm_min_error == 0.0f || abs_err < alarm_min_error)
     {
-        min_error = abs_err;
-        stuck_cnt = 0;                          /* 在改善, 不清零计时 */
+        alarm_min_error = abs_err;
+        alarm_stuck_cnt = 0;
     }
     else
     {
-        stuck_cnt++;                            /* 无改善, 累计卡住时间 */
+        alarm_stuck_cnt++;
     }
 
-    if (stuck_cnt >= STUCK_THRESHOLD)
+    if (alarm_stuck_cnt >= STUCK_THRESHOLD)
     {
-        sys_state = SYSTEM_STATE_ALARM;          /* 真正报警 */
+        sys_state = SYSTEM_STATE_ALARM;
         if (!alarm_active)
         {
             alarm_active = 1;
@@ -267,6 +283,9 @@ static void ProcessKey(uint8_t key)
             }
             sys_state = SYSTEM_STATE_RUNNING;   /* 确认后开始运行 */
             setting_idx = 0;
+            Alarm_ResetCounters();
+            alarm_active = 0;
+            HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_SET);
             PID_Reset(&hpid);
             run_time_sec = 0;
             run_time_ms = 0;
@@ -284,6 +303,9 @@ static void ProcessKey(uint8_t key)
             else
             {
                 sys_state = SYSTEM_STATE_RUNNING;
+                Alarm_ResetCounters();
+                alarm_active = 0;
+                HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_SET);
                 run_time_sec = 0;
                 run_time_ms = 0;
             }
@@ -454,16 +476,22 @@ int main(void)
         {
             last_tick = now;
 
-            /* ② 温度采集 (非阻塞: 上一个转换已就绪则读取, 再启动新转换) */
+            /* ② 温度采集 (非阻塞: 跳过3周期=800ms, 大于DS18B20最大转换时间750ms) */
             if (ds18b20_conv_started)
             {
-                current_temp = DS18B20_ReadResult();
-                DS18B20_StartConversion();
+                ds18b20_cycle_cnt++;
+                if (ds18b20_cycle_cnt >= 4)
+                {
+                    ds18b20_cycle_cnt = 0;
+                    current_temp = DS18B20_ReadResult();
+                    DS18B20_StartConversion();
+                }
             }
             else
             {
                 DS18B20_StartConversion();
                 ds18b20_conv_started = 1;
+                ds18b20_cycle_cnt = 0;
             }
 
             /* ③ 报警检测 (始终执行, 不依赖运行状态) */
