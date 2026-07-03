@@ -176,11 +176,8 @@ static void Alarm_ResetCounters(void)
 
 static void Alarm_ClearBuzzer(void)
 {
-    if (alarm_active)
-    {
-        alarm_active = 0;
-        HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_SET);
-    }
+    alarm_active = 0;
+    HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_SET);
 }
 
 static void Alarm_Check(void)
@@ -228,11 +225,8 @@ static void Alarm_Check(void)
     if (alarm_stuck_cnt >= STUCK_THRESHOLD)
     {
         sys_state = SYSTEM_STATE_ALARM;
-        if (!alarm_active)
-        {
-            alarm_active = 1;
-            HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_RESET);
-        }
+        alarm_active = 1;
+        HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_RESET);
     }
 }
 
@@ -494,10 +488,13 @@ int main(void)
                 ds18b20_cycle_cnt = 0;
             }
 
-            /* ③ 报警检测 (始终执行, 不依赖运行状态) */
+            /* ③ 安全守卫: 控制周期开始前确保蜂鸣器初始关闭 */
+            HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, GPIO_PIN_SET);
+
+            /* ④ 报警检测 (始终执行, 不依赖运行状态) */
             Alarm_Check();
 
-            /* ④ 运行/报警状态下执行 PID 控制 (报警只响蜂鸣器, 不停控温) */
+            /* ⑤ 运行/报警状态下执行 PID 控制 (报警只响蜂鸣器, 不停控温) */
             if (sys_state == SYSTEM_STATE_RUNNING || sys_state == SYSTEM_STATE_ALARM)
             {
                 pid_out = PID_Calculate(&hpid, target_temp, current_temp);

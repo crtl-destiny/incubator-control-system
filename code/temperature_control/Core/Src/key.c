@@ -18,7 +18,10 @@
  *   └───┴───┴───┘
  *   * = 0x0A (设置/退格), # = 0x0B (确认/启停)
  *
- * 扫描方式: 无阻塞, GPIO 设行后加 ~2µs 等待信号稳定。
+ * 扫描方式: 列引脚上拉输入(PULLUP), 空闲时高电平。
+ *   逐行扫描: 将该行置低, 其余行置高 → 若有键按下则列被拉低。
+ *   判断条件: 列读数为 RESET(低电平) 表示按键。
+ *   无阻塞, GPIO 设行后加 ~2µs 等待信号稳定。
  * 去抖: 每检测到一个键后屏蔽 50ms (基于 HAL_GetTick, 不阻塞)。
  * 同键防重: 50ms 窗口内只返回一次相同键值。
  */
@@ -48,15 +51,17 @@ uint8_t Key_Scan(void)
 
     for (uint8_t r = 0; r < KEY_ROWS; r++)
     {
-        HAL_GPIO_WritePin(GPIOB, row_pins[0] | row_pins[1] | row_pins[2] | row_pins[3], GPIO_PIN_RESET);
-        HAL_GPIO_WritePin(GPIOB, row_pins[r], GPIO_PIN_SET);
+        /* 所有行先置高, 再将当前行拉低 */
+        HAL_GPIO_WritePin(GPIOB, row_pins[0] | row_pins[1] | row_pins[2] | row_pins[3], GPIO_PIN_SET);
+        HAL_GPIO_WritePin(GPIOB, row_pins[r], GPIO_PIN_RESET);
 
         /* 等待行信号稳定 (~2µs) */
         for (volatile uint32_t d = 0; d < 200; d++);
 
         for (uint8_t c = 0; c < KEY_COLS; c++)
         {
-            if (HAL_GPIO_ReadPin(GPIOB, col_pins[c]) == GPIO_PIN_SET)
+            /* 列引脚有上拉, 空闲时高电平; 键按下后列被拉低 → 读数为 RESET */
+            if (HAL_GPIO_ReadPin(GPIOB, col_pins[c]) == GPIO_PIN_RESET)
             {
                 found = key_map[r][c];
                 break;
