@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net">
+  <diagram name="OLED显示流程图" id="oled-display">
+    <mxGraphModel dx="0" dy="0" grid="1" gridSize="10" guide="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- === 启动画面（一次） === -->
+
+        <!-- OLED_Init -->
+        <mxCell id="init" value="OLED_Init()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#5F6368;fontFamily=Segoe UI;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="100" y="40" width="130" height="36" as="geometry"/>
+        </mxCell>
+
+        <!-- 显示Logo -->
+        <mxCell id="logo" value="&lt;b&gt;Logo&lt;/b&gt;&lt;hr&gt;Bio-Incubator v1.0" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#5F6368;fontFamily=Segoe UI;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="100" y="110" width="130" height="44" as="geometry"/>
+        </mxCell>
+
+        <!-- Delay 2s -->
+        <mxCell id="delay" value="Delay 2s" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#5F6368;fontFamily=Segoe UI;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="100" y="188" width="130" height="36" as="geometry"/>
+        </mxCell>
+
+        <!-- 箭头 init→logo -->
+        <mxCell id="e1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#5F6368;strokeWidth=1.5;" edge="1" parent="1" source="init" target="logo">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 箭头 logo→delay -->
+        <mxCell id="e2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#5F6368;strokeWidth=1.5;" edge="1" parent="1" source="logo" target="delay">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- === 显示刷新（每200ms） === -->
+
+        <!-- 清显存 -->
+        <mxCell id="clear" value="清显存" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#5F6368;fontFamily=Segoe UI;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="350" y="40" width="130" height="36" as="geometry"/>
+        </mxCell>
+
+        <!-- 标题 -->
+        <mxCell id="title" value="标题行" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#5F6368;fontFamily=Segoe UI;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="350" y="110" width="130" height="36" as="geometry"/>
+        </mxCell>
+
+        <!-- 当前温度 -->
+        <mxCell id="temp" value="当前温度" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#5F6368;fontFamily=Segoe UI;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="350" y="180" width="130" height="36" as="geometry"/>
+        </mxCell>
+
+        <!-- 目标温度 -->
+        <mxCell id="set" value="目标温度" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#5F6368;fontFamily=Segoe UI;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="350" y="250" width="130" height="36" as="geometry"/>
+        </mxCell>
+
+        <!-- 状态? 菱形 -->
+        <mxCell id="state" value="状态?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#F9AB00;fontFamily=Segoe UI;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="355" y="325" width="120" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Status: IDLE -->
+        <mxCell id="idle" value="IDLE" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#5F6368;fontFamily=Segoe UI;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="120" y="445" width="100" height="34" as="geometry"/>
+        </mxCell>
+
+        <!-- Status: RUN -->
+        <mxCell id="run" value="RUN" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#5F6368;fontFamily=Segoe UI;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="250" y="445" width="100" height="34" as="geometry"/>
+        </mxCell>
+
+        <!-- Status: ALARM -->
+        <mxCell id="alarm" value="ALARM" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FCE8E6;strokeColor=#D93025;fontFamily=Segoe UI;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="380" y="445" width="100" height="34" as="geometry"/>
+        </mxCell>
+
+        <!-- 设置界面 -->
+        <mxCell id="setting" value="设置界面" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FCE8E6;strokeColor=#D93025;fontFamily=Segoe UI;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="650" y="325" width="100" height="36" as="geometry"/>
+        </mxCell>
+
+        <!-- PID输出 -->
+        <mxCell id="pid" value="PID 输出" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#5F6368;fontFamily=Segoe UI;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="235" y="530" width="130" height="36" as="geometry"/>
+        </mxCell>
+
+        <!-- 刷新屏幕1（设置分支） -->
+        <mxCell id="flush_set" value="刷新屏幕" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FCE8E6;strokeColor=#D93025;fontFamily=Segoe UI;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="650" y="400" width="100" height="36" as="geometry"/>
+        </mxCell>
+
+        <!-- 运行时间 -->
+        <mxCell id="runtime" value="运行时间" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#5F6368;fontFamily=Segoe UI;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="235" y="600" width="130" height="36" as="geometry"/>
+        </mxCell>
+
+        <!-- 刷新屏幕2 -->
+        <mxCell id="flush2" value="刷新屏幕" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#5F6368;fontFamily=Segoe UI;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="235" y="670" width="130" height="36" as="geometry"/>
+        </mxCell>
+
+        <!-- 箭头 delay→clear -->
+        <mxCell id="e3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeColor=#5F6368;strokeWidth=1.5;" edge="1" parent="1" source="delay" target="clear">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 箭头 clear→title -->
+        <mxCell id="e4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#5F6368;strokeWidth=1.5;" edge="1" parent="1" source="clear" target="title">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 箭头 title→temp -->
+        <mxCell id="e5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#5F6368;strokeWidth=1.5;" edge="1" parent="1" source="title" target="temp">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 箭头 temp→set -->
+        <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#5F6368;strokeWidth=1.5;" edge="1" parent="1" source="temp" target="set">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 箭头 set→state -->
+        <mxCell id="e7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#5F6368;strokeWidth=1.5;" edge="1" parent="1" source="set" target="state">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 箭头 state→idle -->
+        <mxCell id="e8" value="IDLE" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.15;exitY=1;entryX=0.5;entryY=0;strokeColor=#5F6368;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=10;fontColor=#666666;" edge="1" parent="1" source="state" target="idle">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 箭头 state→run -->
+        <mxCell id="e9" value="RUN" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.38;exitY=1;entryX=0.5;entryY=0;strokeColor=#5F6368;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=10;fontColor=#666666;" edge="1" parent="1" source="state" target="run">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 箭头 state→alarm -->
+        <mxCell id="e10" value="ALARM" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.62;exitY=1;entryX=0.5;entryY=0;strokeColor=#5F6368;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=10;fontColor=#666666;" edge="1" parent="1" source="state" target="alarm">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 箭头 state→setting -->
+        <mxCell id="e11" value="SETTING" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeColor=#5F6368;strokeWidth=1.5;fontFamily=Segoe UI;fontSize=10;fontColor=#666666;" edge="1" parent="1" source="state" target="setting">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 箭头 idle→pid -->
+        <mxCell id="e12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#5F6368;strokeWidth=1.5;" edge="1" parent="1" source="idle" target="pid">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 箭头 run→pid (merge) -->
+        <mxCell id="e13" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;entryX=0.38;entryY=0;strokeColor=#5F6368;strokeWidth=1.5;" edge="1" parent="1" source="run" target="pid">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 箭头 alarm→pid -->
+        <mxCell id="e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;entryX=0.62;entryY=0;strokeColor=#5F6368;strokeWidth=1.5;" edge="1" parent="1" source="alarm" target="pid">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 箭头 setting→flush_set -->
+        <mxCell id="e15" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#D93025;strokeWidth=1.5;" edge="1" parent="1" source="setting" target="flush_set">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 箭头 pid→runtime -->
+        <mxCell id="e16" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#5F6368;strokeWidth=1.5;" edge="1" parent="1" source="pid" target="runtime">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 箭头 runtime→flush2 -->
+        <mxCell id="e17" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#5F6368;strokeWidth=1.5;" edge="1" parent="1" source="runtime" target="flush2">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 标注文字 -->
+        <mxCell id="label1" value="&lt;i&gt;启动画面（一次）&lt;/i&gt;" style="text;html=1;fillColor=none;strokeColor=none;fontFamily=Segoe UI;fontSize=10;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="100" y="14" width="130" height="24" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="label2" value="&lt;i&gt;显示刷新（每 200ms）&lt;/i&gt;" style="text;html=1;fillColor=none;strokeColor=none;fontFamily=Segoe UI;fontSize=10;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="350" y="14" width="160" height="24" as="geometry"/>
+        </mxCell>
+
+        <!-- 循环箭头 clear 左边 -->
+        <mxCell id="loop" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0;exitY=0.5;entryX=0.5;entryY=1;strokeColor=#1A73E8;strokeWidth=1.5;dashed=1;fontFamily=Segoe UI;fontSize=10;fontColor=#1A73E8;" edge="1" parent="1" source="flush2" target="clear">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="190" y="688"/>
+              <mxPoint x="190" y="58"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="loopLabel" value="&lt;i&gt;循环&lt;/i&gt;" style="text;html=1;fillColor=none;strokeColor=none;fontFamily=Segoe UI;fontSize=10;fontColor=#1A73E8;" vertex="1" parent="1">
+          <mxGeometry x="170" y="365" width="50" height="20" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

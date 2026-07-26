@@ -1,0 +1,2 @@
+# 生化培养箱上位机依赖
+# pip install pyserial matplotlib numpy
